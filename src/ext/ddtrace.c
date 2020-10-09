@@ -403,7 +403,8 @@ static PHP_RINIT_FUNCTION(ddtrace) {
         return SUCCESS;
     }
 
-    array_init(&DDTRACE_G(additional_trace_meta));
+    // currently only use this for error.msg, error.stack, and error.type, so use 3
+    array_init_size(&DDTRACE_G(additional_trace_meta), 3);
 
     // Things that should only run on the first RINIT
     int expected_first_rinit = 1;

@@ -437,15 +437,21 @@ void ddtrace_error_cb(DDTRACE_ERROR_CB_PARAMETERS) {
      */
     bool is_fatal_error = type & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR);
     if (EXPECTED(EG(active)) && EG(error_handling) == EH_NORMAL && UNEXPECTED(is_fatal_error)) {
-        ddtrace_exception_t *error = ddtrace_make_exception_from_error(DDTRACE_ERROR_CB_PARAM_PASSTHRU);
-        ddtrace_exception_to_meta(error, &DDTRACE_G(additional_trace_meta), dd_add_meta_array);
-        ddtrace_span_fci *span = DDTRACE_G(open_spans_top);
-        while (span) {
-            ddtrace_span_attach_exception(span, error);
-            span = span->next;
+        /* If there is a fatal error in shutdown then this might not be an array
+         * because we set it to IS_NULL in RSHUTDOWN. We probably want a more
+         * robust way of detecting this, but I'm not sure how yet.
+         */
+        if (Z_TYPE(DDTRACE_G(additional_trace_meta)) == IS_ARRAY) {
+            ddtrace_exception_t *error = ddtrace_make_exception_from_error(DDTRACE_ERROR_CB_PARAM_PASSTHRU);
+            ddtrace_exception_to_meta(error, &DDTRACE_G(additional_trace_meta), dd_add_meta_array);
+            ddtrace_span_fci *span = DDTRACE_G(open_spans_top);
+            while (span) {
+                ddtrace_span_attach_exception(span, error);
+                span = span->next;
+            }
+            ddtrace_close_all_open_spans();
+            zend_object_release(error);
         }
-        ddtrace_close_all_open_spans();
-        zend_object_release(error);
     }
 
     ddtrace_prev_error_cb(DDTRACE_ERROR_CB_PARAM_PASSTHRU);
