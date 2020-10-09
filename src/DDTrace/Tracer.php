@@ -358,8 +358,8 @@ final class Tracer implements TracerInterface
         $serviceMappings = \ddtrace_config_service_mapping();
 
         $root = $this->getSafeRootSpan();
-        if ($root && \function_exists('DDTrace\\additional_span_meta')) {
-            foreach (\DDTrace\additional_span_meta() as $tag => $value) {
+        if ($root) {
+            foreach (\DDTrace\additional_trace_meta() as $tag => $value) {
                 $root->setTag($tag, $value);
             }
         }
