@@ -54,14 +54,9 @@ class WordPressIntegration extends Integration
 
         // This call happens right after WP registers an autoloader for the first time
         \DDTrace\trace_method('Requests', 'set_certificate_path', function () use ($integration) {
-            if (!isset($GLOBALS['wp_version']) || !is_string($GLOBALS['wp_version'])) {
-                return false;
-            }
-            $majorVersion = substr($GLOBALS['wp_version'], 0, 2);
-            if ('4.' === $majorVersion) {
-                $loader = new WordPressIntegrationLoader();
-                $loader->load($integration);
-            }
+            $loader = new WordPressIntegrationLoader();
+            $loader->load($integration);
+
             return false; // Drop this span to reduce noise
         });
 
